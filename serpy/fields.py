@@ -65,7 +65,8 @@ class Field(object):
 
     def to_value(self, obj):
         warnings.warn(
-            "`.to_value` method is deprecated, use `.to_representation` instead",
+            "`.to_value` method is deprecated, use `.to_representation` "
+            "instead",
             DeprecationWarning,
             stacklevel=2
         )
