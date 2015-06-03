@@ -8,8 +8,8 @@ class Field(object):
 
     A :class:`Field` maps a property or function on an object to a value in the
     serialized result. Subclass this to make custom fields. For most simple
-    cases, overriding :meth:`Field.to_representation` should give enough flexibility. If
-    more control is needed, override :meth:`Field.as_getter`.
+    cases, overriding :meth:`Field.to_representation` should give enough
+    flexibility. If more control is needed, override :meth:`Field.as_getter`.
 
     :param str attr: The attribute to get on the object, using the same format
         as ``operator.attrgetter``. If this is not supplied, the name this
@@ -17,7 +17,8 @@ class Field(object):
     :param bool call: Whether the value should be called after it is retrieved
         from the object. Useful if an object has a method to be serialized.
     :param bool required: Whether the field is required. If set to ``False``,
-        :meth:`Field.to_representation` will not be called if the value is ``None``.
+        :meth:`Field.to_representation` will not be called if the value is
+        ``None``.
     :param bool read_only: Whether the field is read-only. If set to ``False``,
         the field won't be deserialized. If ``call`` is True, or if ``attr``
         contains a '.', then this param is set to True.
@@ -36,7 +37,8 @@ class Field(object):
         self.attr = attr
         self.call = call
         self.required = required
-        self.read_only = read_only or call or (attr is not None and '.' in attr)
+        self.read_only = read_only or call or \
+            (attr is not None and '.' in attr)
 
     def to_representation(self, value):
         """Transform the serialized value.
@@ -57,7 +59,9 @@ class Field(object):
         # If to_representation isn't a method, it must have been overridden.
         if not isinstance(to_representation, types.MethodType):
             return True
-        return not getattr(to_representation, '_serpy_base_implementation', False)
+        return not getattr(to_representation,
+                           '_serpy_base_implementation',
+                           False)
 
     def to_value(self, obj):
         warnings.warn(
@@ -86,7 +90,9 @@ class Field(object):
         # If to_internal_value isn't a method, it must have been overridden.
         if not isinstance(to_internal_value, types.MethodType):
             return True
-        return not getattr(to_internal_value, '_serpy_base_implementation', False)
+        return not getattr(to_internal_value,
+                           '_serpy_base_implementation',
+                           False)
 
     def as_getter(self, serializer_field_name, serializer_cls):
         """Returns a function that fetches an attribute from an object.

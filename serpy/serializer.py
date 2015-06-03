@@ -14,7 +14,8 @@ def _compile_read_field_to_tuple(field, name, serializer_cls):
     if getter is None:
         getter = serializer_cls.default_getter(field.attr or name)
 
-    # Only set a to_representation function if it has been overridden for performance.
+    # Only set a to_representation function if it has been overridden
+    # for performance.
     to_representation = None
     if field._is_to_representation_overridden():
         to_representation = field.to_representation
@@ -28,7 +29,8 @@ def _compile_write_field_to_tuple(field, name, serializer_cls):
     if setter is None:
         setter = serializer_cls.default_setter(field.attr or name)
 
-    # Only set a to_internal_value function if it has been overridden for performance.
+    # Only set a to_internal_value function if it has been overridden
+    # for performance.
     to_internal_value = None
     if field._is_to_internal_value_overridden():
         to_internal_value = field.to_internal_value
@@ -74,7 +76,8 @@ class SerializerMeta(type):
 
         real_cls = super(SerializerMeta, cls).__new__(cls, name, bases, attrs)
 
-        field_map, compiled_read_fields, compiled_write_fields = cls._get_fields(direct_fields, real_cls)
+        field_map, compiled_read_fields, compiled_write_fields = \
+            cls._get_fields(direct_fields, real_cls)
 
         real_cls._field_map = field_map
         real_cls._compiled_read_fields = tuple(compiled_read_fields)
@@ -87,7 +90,8 @@ def attrsetter(attr_name):
     """
     attrsetter(attr) --> attrsetter object
 
-    Return a callable object that sets the given attribute(s) on its first operand as the second operand
+    Return a callable object that sets the given attribute(s) on its first
+    operand as the second operand
     After f = attrsetter('name'), the call f(o, val) executes: o.name = val
     """
     def _attrsetter(obj, val):
@@ -131,7 +135,7 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
 
     def _serialize(self, obj, fields):
         v = {}
-        for name, getter, to_representation, call, required, pass_self in fields:
+        for name, getter, to_repr, call, required, pass_self in fields:
             if pass_self:
                 result = getter(self, obj)
             else:
@@ -139,15 +143,15 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
                 if required or result is not None:
                     if call:
                         result = result()
-                    if to_representation:
-                        result = to_representation(result)
+                    if to_repr:
+                        result = to_repr(result)
             v[name] = result
 
         return v
 
     def _deserialize(self, data, fields):
         v = self._cls()
-        for name, setter, to_internal_value, call, required, pass_self in fields:
+        for name, setter, to_internal, call, required, pass_self in fields:
             if pass_self:
                 setter(self, v, data[name])
             else:
@@ -155,8 +159,8 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
                     value = data[name]
                 else:
                     value = data.get(name)
-                if to_internal_value and (required or value is not None):
-                    value = to_internal_value(value)
+                if to_internal and (required or value is not None):
+                    value = to_internal(value)
                 setter(v, value)
         return v
 

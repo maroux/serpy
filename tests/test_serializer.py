@@ -286,7 +286,8 @@ class TestSerializer(unittest.TestCase):
         self.assertRaises(TypeError, lambda: ASerializer(o).representation)
 
         data = {}
-        self.assertRaises(KeyError, lambda: ASerializer(data=data).internal_value)
+        self.assertRaises(KeyError,
+                          lambda: ASerializer(data=data).internal_value)
 
     def test_read_only_field(self):
         class ASerializer(Serializer):
@@ -307,7 +308,8 @@ class TestSerializer(unittest.TestCase):
             a = IntField()
 
         data = {'a': 5}
-        self.assertRaises(AttributeError, lambda: ASerializer(data=data).internal_value)
+        self.assertRaises(AttributeError,
+                          lambda: ASerializer(data=data).internal_value)
 
     def test_data_backwards_compatibility(self):
         class ASerializer(Serializer):
