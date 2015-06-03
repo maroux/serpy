@@ -192,7 +192,7 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
     @property
     def data(self):
         warnings.warn(
-            ".data property is deprecated, use .representation instead",
+            "`.data` property is deprecated, use `.representation` instead",
             DeprecationWarning,
             stacklevel=2
         )

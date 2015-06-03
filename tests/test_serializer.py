@@ -263,7 +263,7 @@ class TestSerializer(unittest.TestCase):
 
         o = Obj(a=None)
         data = ASerializer(o).representation
-        self.assertIsNone(data['a'])
+        self.assertTrue(data['a'] is None)
 
         data = {'a': None}
         obj = ASerializer(data=data).internal_value
@@ -317,7 +317,7 @@ class TestSerializer(unittest.TestCase):
 
         o = Obj(a='5')
         serializer = ASerializer(o)
-        self.assertIs(serializer.data, serializer.representation)
+        self.assertTrue(serializer.data is serializer.representation)
 
     def test_data_deprecation_warning(self):
         o = Obj(a='5')
@@ -327,7 +327,7 @@ class TestSerializer(unittest.TestCase):
             serializer.data
             self.assertEqual(len(w), 1)
             self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
-            self.assertIn('deprecated', str(w[-1].message))
+            self.assertTrue('deprecated' in str(w[-1].message))
 
 if __name__ == '__main__':
     unittest.main()

@@ -132,7 +132,7 @@ class TestFields(unittest.TestCase):
             IntField().to_value('1')
             self.assertEqual(len(w), 1)
             self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
-            self.assertIn('deprecated', str(w[-1].message))
+            self.assertTrue('deprecated' in str(w[-1].message))
 
 
 if __name__ == '__main__':
