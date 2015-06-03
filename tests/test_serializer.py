@@ -267,7 +267,7 @@ class TestSerializer(unittest.TestCase):
 
         data = {'a': None}
         obj = ASerializer(data=data).internal_value
-        self.assertIsNone(obj.a)
+        self.assertTrue(obj.a is None)
 
         o = Obj(a='5')
         data = ASerializer(o).representation
