@@ -56,21 +56,32 @@ class SerializerMeta(type):
         # get the right order of meta bases
         meta_bases = meta_bases[::-1]
 
+        # automatically create an inner-class Meta that inherits from
+        # parent class's inner-class Meta
+        Meta = type('Meta', meta_bases, {})
+        meta = Meta()
+
         compiled_read_fields = [
             _compile_read_field_to_tuple(field, name, serializer_cls)
             for name, field in field_map.items()
             ]
 
+        field_map_items = []
+        if not meta.override_deser_field_order:
+            field_map_items = field_map.items()
+        else:
+            for field in meta.override_deser_field_order:
+                field_map_items.append((field, field_map[field]))
+            for name, field in field_map.items():
+                if name not in meta.override_deser_field_order:
+                    field_map_items.append((name, field))
+
         compiled_write_fields = [
             _compile_write_field_to_tuple(field, name, serializer_cls)
-            for name, field in field_map.items()
+            for name, field in field_map_items
             if not field.read_only
             ]
 
-        # automatically create an inner-class Meta that inherits from
-        # parent class's inner-class Meta
-        Meta = type('Meta', meta_bases, {})
-        meta = Meta()
         meta._field_map = field_map
         meta._compiled_read_fields = compiled_read_fields
         meta._compiled_write_fields = compiled_write_fields
@@ -142,9 +153,18 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
     """
     # Inner-class
     class Meta(object):
+        # class of the deserialized object
         cls = None
+
+        # default getter to use for getting field values
         default_getter = operator.attrgetter
+
+        # default setter to use for setting field values
         default_setter = attrsetter
+
+        # override some fields to be ordered before others
+        # can also be used to order all fields
+        override_deser_field_order = []
 
     def __init__(self, instance=None, data=None, many=False, **kwargs):
         super(Serializer, self).__init__(**kwargs)

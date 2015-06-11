@@ -1,3 +1,4 @@
+import collections
 import unittest
 
 from serpy.fields import Field, MethodField, IntField, FloatField, StrField
@@ -367,6 +368,36 @@ class TestSerializer(unittest.TestCase):
         self.assertRaises(AttributeError,
                           lambda: serializer.deserialized_value)
 
+    def test_serializer_field_ordering(self):
+        class OrderedDictObj(collections.OrderedDict):
+            def __setattr__(self, name, value):
+                if not name.startswith('_'):
+                    self[name] = value
+                else:
+                    super(OrderedDictObj, self).__setattr__(name, value)
+
+        class ASerializer(Serializer):
+            class Meta:
+                cls = OrderedDictObj
+                override_deser_field_order = ['a']
+
+            a = IntField()
+            b = IntField()
+
+        class BSerializer(Serializer):
+            class Meta:
+                cls = OrderedDictObj
+                override_deser_field_order = ['b']
+
+            a = IntField()
+            b = IntField()
+
+        data = {'a': 1, 'b': 2}
+        a_obj = ASerializer(data=data).deserialized_value
+        b_obj = BSerializer(data=data).deserialized_value
+
+        self.assertEqual(a_obj.keys(), ['a', 'b'])
+        self.assertEqual(b_obj.keys(), ['b', 'a'])
 
 if __name__ == '__main__':
     unittest.main()
