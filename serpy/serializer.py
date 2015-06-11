@@ -5,13 +5,13 @@ from serpy.fields import Field
 
 
 class SerializerBase(Field):
-    _field_map = {}
+    pass
 
 
 def _compile_read_field_to_tuple(field, name, serializer_cls):
     getter = field.as_getter(name, serializer_cls)
     if getter is None:
-        getter = serializer_cls.Meta.default_getter(field.attr or name)
+        getter = serializer_cls._meta.default_getter(field.attr or name)
 
     # Only set a to_representation function if it has been overridden
     # for performance.
@@ -26,7 +26,7 @@ def _compile_read_field_to_tuple(field, name, serializer_cls):
 def _compile_write_field_to_tuple(field, name, serializer_cls):
     setter = field.as_setter(name, serializer_cls)
     if setter is None:
-        setter = serializer_cls.Meta.default_setter(field.attr or name)
+        setter = serializer_cls._meta.default_setter(field.attr or name)
 
     # Only set a to_internal_value function if it has been overridden
     # for performance.
@@ -41,13 +41,20 @@ def _compile_write_field_to_tuple(field, name, serializer_cls):
 class SerializerMeta(type):
 
     @staticmethod
-    def _get_fields(direct_fields, serializer_cls):
+    def _compile_meta(direct_fields, serializer_meta, serializer_cls):
         field_map = {}
+        meta_bases = ()
         # Get all the fields from base classes.
-        for cls in serializer_cls.__mro__[::-1]:
-            if issubclass(cls, SerializerBase):
-                field_map.update(cls._field_map)
+        for cls in serializer_cls.__bases__[::-1]:
+            if issubclass(cls, SerializerBase) and cls is not SerializerBase:
+                field_map.update(cls._meta._field_map)
+                meta_bases = meta_bases + (type(cls._meta),)
         field_map.update(direct_fields)
+        if serializer_meta:
+            meta_bases = meta_bases + (serializer_meta,)
+
+        # get the right order of meta bases
+        meta_bases = meta_bases[::-1]
 
         compiled_read_fields = [
             _compile_read_field_to_tuple(field, name, serializer_cls)
@@ -60,7 +67,15 @@ class SerializerMeta(type):
             if not field.read_only
             ]
 
-        return field_map, compiled_read_fields, compiled_write_fields
+        # automatically create an inner-class Meta that inherits from
+        # parent class's inner-class Meta
+        Meta = type('Meta', meta_bases, {})
+        meta = Meta()
+        meta._field_map = field_map
+        meta._compiled_read_fields = compiled_read_fields
+        meta._compiled_write_fields = compiled_write_fields
+
+        return meta
 
     def __new__(cls, name, bases, attrs):
         # Fields declared directly on the class.
@@ -73,14 +88,14 @@ class SerializerMeta(type):
         for k in direct_fields.keys():
             del attrs[k]
 
+        serializer_meta = attrs.pop('Meta', None)
+
         real_cls = super(SerializerMeta, cls).__new__(cls, name, bases, attrs)
 
-        field_map, compiled_read_fields, compiled_write_fields = (
-            cls._get_fields(direct_fields, real_cls))
+        real_cls._meta = cls._compile_meta(
+            direct_fields, serializer_meta, real_cls
+        )
 
-        real_cls._field_map = field_map
-        real_cls._compiled_read_fields = tuple(compiled_read_fields)
-        real_cls._compiled_write_fields = tuple(compiled_write_fields)
         return real_cls
 
 
@@ -126,11 +141,10 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
         ``True`` to serialize to a list.
     """
     # Inner-class
-    class Meta:
-        #: The default getter used if :meth:`Field.as_getter` returns None.
+    class Meta(object):
+        cls = None
         default_getter = operator.attrgetter
         default_setter = attrsetter
-        cls = None
 
     def __init__(self, instance=None, data=None, many=False, **kwargs):
         super(Serializer, self).__init__(**kwargs)
@@ -161,7 +175,7 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
         return v
 
     def _deserialize(self, data, fields):
-        v = self.Meta.cls()
+        v = self._meta.cls()
         for name, setter, to_internal, call, required, pass_self in fields:
             if pass_self:
                 setter(self, v, data[name])
@@ -176,14 +190,14 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
         return v
 
     def to_representation(self, obj):
-        fields = self._compiled_read_fields
+        fields = self._meta._compiled_read_fields
         if self.many:
             serialize = self._serialize
             return [serialize(o, fields) for o in obj]
         return self._serialize(obj, fields)
 
     def to_internal_value(self, data):
-        fields = self._compiled_write_fields
+        fields = self._meta._compiled_write_fields
         if self.many:
             deserialize = self._deserialize
             return [deserialize(o, fields) for o in data]
@@ -230,5 +244,5 @@ class DictSerializer(Serializer):
         FooSerializer(foo).representation
         # {'foo': 5, 'bar': 2.2}
     """
-    class Meta(Serializer.Meta):
+    class Meta:
         default_getter = operator.itemgetter

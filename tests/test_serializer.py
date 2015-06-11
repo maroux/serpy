@@ -9,7 +9,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_simple(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Field()
@@ -22,7 +22,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_data_and_obj_cached(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Field()
@@ -42,13 +42,13 @@ class TestSerializer(unittest.TestCase):
 
     def test_inheritance(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Field()
 
         class CSerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             c = Field()
@@ -82,7 +82,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_many(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Field()
@@ -107,13 +107,13 @@ class TestSerializer(unittest.TestCase):
 
     def test_serializer_as_field(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Field()
 
         class BSerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             b = ASerializer()
@@ -127,13 +127,13 @@ class TestSerializer(unittest.TestCase):
 
     def test_serializer_as_field_many(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Field()
 
         class BSerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             b = ASerializer(many=True)
@@ -154,13 +154,13 @@ class TestSerializer(unittest.TestCase):
 
     def test_serializer_as_field_call(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Field()
 
         class BSerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             b = ASerializer(call=True)
@@ -173,7 +173,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_serializer_method_field(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = MethodField()
@@ -202,7 +202,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_field_called(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = IntField()
@@ -222,7 +222,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_dict_serializer(self):
         class ASerializer(DictSerializer):
-            class Meta(DictSerializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = IntField()
@@ -239,7 +239,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_dotted_attr(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Field('a.b.c')
@@ -260,7 +260,7 @@ class TestSerializer(unittest.TestCase):
                 return data - 5
 
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = Add5Field()
@@ -274,7 +274,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_optional_field(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = IntField(required=False)
@@ -296,7 +296,7 @@ class TestSerializer(unittest.TestCase):
         self.assertEqual(obj.a, 5)
 
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = IntField()
@@ -312,7 +312,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_read_only_field(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = IntField(read_only=True)
@@ -327,7 +327,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_serialization_requires_instance(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = IntField()
@@ -336,7 +336,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_deserialization_requires_data(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = IntField()
@@ -356,7 +356,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_can_only_do_serialization_or_deserialization(self):
         class ASerializer(Serializer):
-            class Meta(Serializer.Meta):
+            class Meta:
                 cls = Obj
 
             a = IntField()
