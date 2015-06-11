@@ -45,7 +45,7 @@ def benchmark(serializer_fn, repetitions, num_objs=1, data=None):
 
     t1 = time.time()
     for i in range(repetitions):
-        serializer_fn(objs, many=many).representation
+        serializer_fn(objs, many=many).data
     total_time = time.time() - t1
     print('Total time: {}'.format(total_time))
     print('Objs/s    : {}\n'.format(int(total_objs / total_time)))

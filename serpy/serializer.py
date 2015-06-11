@@ -1,6 +1,5 @@
 import operator
 import six
-import warnings
 
 from serpy.fields import Field
 
@@ -76,8 +75,8 @@ class SerializerMeta(type):
 
         real_cls = super(SerializerMeta, cls).__new__(cls, name, bases, attrs)
 
-        field_map, compiled_read_fields, compiled_write_fields = \
-            cls._get_fields(direct_fields, real_cls)
+        field_map, compiled_read_fields, compiled_write_fields = (
+            cls._get_fields(direct_fields, real_cls))
 
         real_cls._field_map = field_map
         real_cls._compiled_read_fields = tuple(compiled_read_fields)
@@ -117,7 +116,12 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
         FooSerializer(foo).representation
         # {'foo': 'hello', 'bar': 5}
 
-    :param obj: The object or objects to serialize.
+    A particular Serializer object can either serialize or deserialize, but
+    not both.
+
+    :param instance: The object or objects to serialize.
+    :param data: The data to deserialize.
+    :param klass: The class for instantiating the deserialized object
     :param bool many: If ``obj`` is a collection of objects, set ``many`` to
         ``True`` to serialize to a list.
     """
@@ -125,13 +129,19 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
     default_getter = operator.attrgetter
     default_setter = attrsetter
 
-    def __init__(self, obj=None, data=None, many=False, **kwargs):
+    def __init__(self, instance=None, data=None, cls=None, many=False,
+                 **kwargs):
         super(Serializer, self).__init__(**kwargs)
-        self._initial_obj = obj
-        self._initial_data = data
+        self._can_serialize = instance is not None
+        self._can_deserialize = not self._can_serialize and data is not None
+        if self._can_serialize:
+            self._initial_instance = instance
+            self._data = None
+        elif self._can_deserialize:
+            self._initial_data = data
+            self._instance = None
+        self._instance_cls = cls
         self.many = many
-        self._representation = None
-        self._internal_value = None
 
     def _serialize(self, obj, fields):
         v = {}
@@ -150,7 +160,7 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
         return v
 
     def _deserialize(self, data, fields):
-        v = self._cls()
+        v = self._instance_cls()
         for name, setter, to_internal, call, required, pass_self in fields:
             if pass_self:
                 setter(self, v, data[name])
@@ -179,35 +189,27 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
         return self._deserialize(data, fields)
 
     @property
-    def representation(self):
+    def data(self):
         """Get the serialized data from the :class:`Serializer`.
 
-        The representation will be cached for future accesses.
+        The return value will be cached for future accesses.
         """
-        # Cache the representation for next time .representation is called.
-        if self._representation is None:
-            self._representation = self.to_representation(self._initial_obj)
-        return self._representation
+        # Cache the data for next time .data is called.
+        if self._data is None:
+            self._data = self.to_representation(self._initial_instance)
+        return self._data
 
     @property
-    def data(self):
-        warnings.warn(
-            "`.data` property is deprecated, use `.representation` instead",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self.representation
-
-    @property
-    def internal_value(self):
+    def deserialized_value(self):
         """Get the deserialized value from the :class:`Serializer`.
 
-        The object will be cached for future accesses.
+        The return value will be cached for future accesses.
         """
-        # Cache the internal_value for next time .internal_value is called.
-        if self._internal_value is None:
-            self._internal_value = self.to_internal_value(self._initial_data)
-        return self._internal_value
+        # Cache the deserialized_value for next time .deserialized_value is
+        # called.
+        if self._instance is None:
+            self._instance = self.to_internal_value(self._initial_data)
+        return self._instance
 
 
 class DictSerializer(Serializer):

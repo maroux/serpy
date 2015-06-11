@@ -37,8 +37,8 @@ class Field(object):
         self.attr = attr
         self.call = call
         self.required = required
-        self.read_only = read_only or call or \
-            (attr is not None and '.' in attr)
+        self.read_only = (read_only or call or
+                          (attr is not None and '.' in attr))
 
     def to_representation(self, value):
         """Transform the serialized value.
@@ -201,7 +201,7 @@ class MethodField(Field):
         method_name = self.getter_method
         if method_name is None:
             method_name = 'get_{0}'.format(serializer_field_name)
-        return getattr(serializer_cls, method_name, None)
+        return getattr(serializer_cls, method_name)
 
     def as_setter(self, serializer_field_name, serializer_cls):
         method_name = self.setter_method
