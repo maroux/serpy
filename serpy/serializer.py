@@ -11,7 +11,7 @@ class SerializerBase(Field):
 def _compile_read_field_to_tuple(field, name, serializer_cls):
     getter = field.as_getter(name, serializer_cls)
     if getter is None:
-        getter = serializer_cls.default_getter(field.attr or name)
+        getter = serializer_cls.Meta.default_getter(field.attr or name)
 
     # Only set a to_representation function if it has been overridden
     # for performance.
@@ -26,7 +26,7 @@ def _compile_read_field_to_tuple(field, name, serializer_cls):
 def _compile_write_field_to_tuple(field, name, serializer_cls):
     setter = field.as_setter(name, serializer_cls)
     if setter is None:
-        setter = serializer_cls.default_setter(field.attr or name)
+        setter = serializer_cls.Meta.default_setter(field.attr or name)
 
     # Only set a to_internal_value function if it has been overridden
     # for performance.
@@ -125,12 +125,14 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
     :param bool many: If ``obj`` is a collection of objects, set ``many`` to
         ``True`` to serialize to a list.
     """
-    #: The default getter used if :meth:`Field.as_getter` returns None.
-    default_getter = operator.attrgetter
-    default_setter = attrsetter
+    # Inner-class
+    class Meta:
+        #: The default getter used if :meth:`Field.as_getter` returns None.
+        default_getter = operator.attrgetter
+        default_setter = attrsetter
+        cls = None
 
-    def __init__(self, instance=None, data=None, cls=None, many=False,
-                 **kwargs):
+    def __init__(self, instance=None, data=None, many=False, **kwargs):
         super(Serializer, self).__init__(**kwargs)
         self._can_serialize = instance is not None
         self._can_deserialize = not self._can_serialize and data is not None
@@ -140,7 +142,6 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
         elif self._can_deserialize:
             self._initial_data = data
             self._instance = None
-        self._instance_cls = cls
         self.many = many
 
     def _serialize(self, obj, fields):
@@ -160,7 +161,7 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
         return v
 
     def _deserialize(self, data, fields):
-        v = self._instance_cls()
+        v = self.Meta.cls()
         for name, setter, to_internal, call, required, pass_self in fields:
             if pass_self:
                 setter(self, v, data[name])
@@ -229,4 +230,5 @@ class DictSerializer(Serializer):
         FooSerializer(foo).representation
         # {'foo': 5, 'bar': 2.2}
     """
-    default_getter = operator.itemgetter
+    class Meta(Serializer.Meta):
+        default_getter = operator.itemgetter
