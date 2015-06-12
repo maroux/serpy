@@ -79,11 +79,11 @@ Simple Example
         z = serpy.Field()
 
     f = Foo(1)
-    FooSerializer(f).representation
+    FooSerializer(instance=f).data
     # {'x': 1, 'y': 'hello', 'z': 9.5}
 
     fs = [Foo(i) for i in range(100)]
-    FooSerializer(fs, many=True).representation
+    FooSerializer(instance=fs, many=True).data
     # [{'x': 0, 'y': 'hello', 'z': 9.5}, {'x': 1, 'y': 'hello', 'z': 9.5}, ...]
 
 Nested Example
@@ -112,7 +112,7 @@ Nested Example
         nested = NesteeSerializer()
 
     f = Foo()
-    FooSerializer(f).representation
+    FooSerializer(instance=f).data
     # {'x': 1, 'nested': {'n': 'hi'}}
 
 Complex Example
@@ -139,7 +139,7 @@ Complex Example
             return obj.y + obj.z
 
     f = Foo()
-    FooSerializer(f).representation
+    FooSerializer(instance=f).data
     # {'w': 10, 'x': 5, 'plus': 3}
 
 Inheritance Example
@@ -165,9 +165,9 @@ Inheritance Example
         b = serpy.Field()
 
     f = Foo()
-    ASerializer(f).representation
+    ASerializer(instance=f).data
     # {'a': 1}
-    ABSerializer(f).representation
+    ABSerializer(instance=f).data
     # {'a': 1, 'b': 2}
 
 License

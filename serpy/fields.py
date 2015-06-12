@@ -183,7 +183,7 @@ class MethodField(Field):
                 return foo_obj.bar - foo_obj.baz
 
         foo = Foo(bar=5, baz=10)
-        FooSerializer(foo).representation
+        FooSerializer(instance=foo).data
         # {'plus': 15, 'minus': -5}
 
     :param str method: The method on the serializer to call. Defaults to

@@ -25,7 +25,7 @@ Then to use it:
 
    f = Obj()
    f.foo = 9
-   ObjSerializer(f).representation
+   ObjSerializer(instance=f).data
    # {'foo': 14}
 
 Another use for custom fields is data validation. For example, to validate that

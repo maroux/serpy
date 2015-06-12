@@ -128,7 +128,7 @@ class Serializer(six.with_metaclass(SerializerMeta, SerializerBase)):
             bar = Field()
 
         foo = Foo(foo='hello', bar=5)
-        FooSerializer(foo).representation
+        FooSerializer(instance=foo).data
         # {'foo': 'hello', 'bar': 5}
 
     A particular Serializer object can either serialize or deserialize, but
@@ -241,7 +241,7 @@ class DictSerializer(Serializer):
             bar = FloatField()
 
         foo = {'foo': '5', 'bar': '2.2'}
-        FooSerializer(foo).representation
+        FooSerializer(instance=foo).data
         # {'foo': 5, 'bar': 2.2}
     """
     class Meta:
